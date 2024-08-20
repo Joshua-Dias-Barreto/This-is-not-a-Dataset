@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union
 
 import numpy as np
-from datasets import load_dataset
+from datasets import load_dataset, Dataset as HFDataset
+import pandas as pd
 from torch.utils.data import DataLoader, Dataset
 from transformers import BatchEncoding, PreTrainedTokenizerBase
 from transformers.utils import PaddingStrategy
@@ -205,6 +206,39 @@ def prepare_data(
 
     return model_inputs
 
+def reduce_dataset(dataset: HFDataset, number_of_rows: int) -> HFDataset:
+    """
+    Reduce the dataset to a desired number of rows with nearly equal distribution across all pattern_ids.
+    """
+    # Convert to DataFrame for easier manipulation
+    df = pd.DataFrame(dataset)
+    
+    # Get unique pattern_ids and their counts
+    unique_pattern_ids = df['pattern_id'].unique()
+    num_pattern_ids = len(unique_pattern_ids)
+    
+    # Calculate how many samples to get per pattern_id
+    samples_per_pattern_id = number_of_rows // num_pattern_ids
+    
+    # Initialize a list to hold the sampled data
+    sampled_data = []
+    
+    # Sample from each pattern_id
+    for pattern_id in unique_pattern_ids:
+        pattern_df = df[df['pattern_id'] == pattern_id]
+        # Ensure we don't exceed the number of rows in the dataset
+        if len(pattern_df) < samples_per_pattern_id:
+            samples_per_pattern_id = len(pattern_df)
+        sampled_pattern_df = pattern_df.sample(n=samples_per_pattern_id, random_state=42)
+        sampled_data.append(sampled_pattern_df)
+    
+    # Concatenate the sampled data
+    sampled_df = pd.concat(sampled_data)
+    
+    # Convert back to Hugging Face Dataset
+    sampled_dataset = HFDataset.from_dict(sampled_df.to_dict(orient='list'))
+    
+    return sampled_dataset
 
 class ThisIsNotADataset(Dataset):
     def __init__(
@@ -226,6 +260,7 @@ class ThisIsNotADataset(Dataset):
         self.jsonl_dataset = []
 
         dataset = load_dataset("HiTZ/This-is-not-a-dataset", split=self.split)
+        dataset = reduce_dataset(dataset, 100)
         if pattern is not None:
             assert pattern in [
                 "Synonymy1",
