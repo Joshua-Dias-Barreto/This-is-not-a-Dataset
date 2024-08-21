@@ -23,7 +23,7 @@ max_seq_length: 4096
 
 # Sampling parameters
 sample_dataset: true
-sample_size: 100
+sample_size: 200
 
 # Output Dir
 output_dir: results/zero-shot/Phi-3-mini-128k-instruct
