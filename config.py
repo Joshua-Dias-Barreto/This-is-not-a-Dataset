@@ -207,3 +207,17 @@ class DataTrainingArguments:
         default=False,
         metadata={"help": ("Whether to add few-shot examples to the input.")},
     )
+
+    sample_dataset: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to sample the dataset. If set to True, only a subset of the dataset will be used."
+        },
+    )
+
+    sample_size: int = field(
+        default=100,
+        metadata={
+            "help": "Number of rows to sample from the dataset if sample_dataset is True. Defaults to 100."
+        },
+    )

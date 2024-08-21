@@ -280,7 +280,7 @@ def main(
             lora_target_modules=model_args.lora_target_modules,
             torch_dtype=model_args.torch_dtype,
             force_auto_device_map=data_args.force_auto_device_map,
-            use_flash_attention=model_args.use_flash_attention,
+            # use_flash_attention=model_args.use_flash_attention,
             use_gradient_checkpointing=model_args.use_lora,
         )
 
@@ -597,7 +597,7 @@ def main(
             quantization=model_args.quantization,
             lora_weights_name_or_path=lora_weights_name_or_path,
             force_auto_device_map=data_args.force_auto_device_map,
-            use_flash_attention=model_args.use_flash_attention,
+            # use_flash_attention=model_args.use_flash_attention,
         )
 
         if accelerator.state.deepspeed_plugin is not None:

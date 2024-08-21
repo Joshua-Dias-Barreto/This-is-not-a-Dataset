@@ -21,6 +21,9 @@ do_predict: true
 do_predict_full_dataset: false
 max_seq_length: 4096
 
+# Sampling parameters
+sample_dataset: true
+sample_size: 100
 
 # Output Dir
 output_dir: results/zero-shot/Phi-3-mini-128k-instruct

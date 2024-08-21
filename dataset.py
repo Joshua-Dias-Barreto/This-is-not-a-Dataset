@@ -11,6 +11,7 @@ from transformers import BatchEncoding, PreTrainedTokenizerBase
 from transformers.utils import PaddingStrategy
 
 from fewshot import get_few_shot
+from config import DataTrainingArguments
 
 
 def prepare_data(
@@ -206,6 +207,15 @@ def prepare_data(
 
     return model_inputs
 
+def load_and_reduce_dataset(data_args: DataTrainingArguments):
+    dataset = load_dataset("HiTZ/This-is-not-a-dataset", split=data_args.split)
+
+    if data_args.sample_dataset:
+        dataset = reduce_dataset(dataset, data_args.sample_size)
+
+    return dataset
+
+
 def reduce_dataset(dataset: HFDataset, number_of_rows: int) -> HFDataset:
     """
     Reduce the dataset to a desired number of rows with nearly equal distribution across all pattern_ids.
@@ -245,6 +255,7 @@ class ThisIsNotADataset(Dataset):
         self,
         tokenizer: PreTrainedTokenizerBase,
         split: str,
+        data_args: DataTrainingArguments,
         is_encoder_decoder: bool = False,
         max_length: int = 2048,
         fewshot: bool = False,
@@ -259,8 +270,7 @@ class ThisIsNotADataset(Dataset):
         self.dataset = []
         self.jsonl_dataset = []
 
-        dataset = load_dataset("HiTZ/This-is-not-a-dataset", split=self.split)
-        dataset = reduce_dataset(dataset, 100)
+        self.dataset = load_and_reduce_dataset(data_args)
         if pattern is not None:
             assert pattern in [
                 "Synonymy1",
