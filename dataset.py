@@ -1,3 +1,4 @@
+
 import logging
 import os
 from dataclasses import dataclass
@@ -11,7 +12,12 @@ from transformers import BatchEncoding, PreTrainedTokenizerBase
 from transformers.utils import PaddingStrategy
 
 from fewshot import get_few_shot
+import argparse
+from transformers import HfArgumentParser
 from config import DataTrainingArguments
+from datasets import load_dataset
+from typing import Optional
+
 
 
 def prepare_data(
@@ -207,13 +213,10 @@ def prepare_data(
 
     return model_inputs
 
-def load_and_reduce_dataset(data_args: DataTrainingArguments):
-    dataset = load_dataset("HiTZ/This-is-not-a-dataset", split=data_args.split)
-
-    if data_args.sample_dataset:
-        dataset = reduce_dataset(dataset, data_args.sample_size)
-
-    return dataset
+def parse_config(config_path: str) -> DataTrainingArguments:
+    hf_parser = HfArgumentParser(DataTrainingArguments)
+    data_args, = hf_parser.parse_yaml_file(yaml_file=config_path)
+    return data_args
 
 
 def reduce_dataset(dataset: HFDataset, number_of_rows: int) -> HFDataset:
@@ -246,7 +249,8 @@ class ThisIsNotADataset(Dataset):
         self,
         tokenizer: PreTrainedTokenizerBase,
         split: str,
-        data_args: DataTrainingArguments,
+        sample_dataset: bool = True,
+        sample_size: int = 100,
         is_encoder_decoder: bool = False,
         max_length: int = 2048,
         fewshot: bool = False,
@@ -261,7 +265,12 @@ class ThisIsNotADataset(Dataset):
         self.dataset = []
         self.jsonl_dataset = []
 
-        self.dataset = load_and_reduce_dataset(data_args)
+        dataset = load_dataset("HiTZ/This-is-not-a-dataset", split=self.split)
+        
+        
+        if sample_dataset:
+            dataset = reduce_dataset(dataset, sample_size)
+        
         if pattern is not None:
             assert pattern in [
                 "Synonymy1",
@@ -479,6 +488,8 @@ class DataCollatorForSeq2Seq:
 def get_dataloader(
     tokenizer: PreTrainedTokenizerBase,
     split: str,
+    sample_dataset: bool = True,
+    sample_size: int = 100,
     is_encoder_decoder: bool = False,
     max_length: int = 512,
     fewshot: bool = False,
@@ -536,10 +547,11 @@ def get_dataloader(
         label_pad_token_id=-100,  # tokenizer.pad_token_id,
         # pad_to_multiple_of=8,  # May be faster on some hardware
     )
-
     dataset = ThisIsNotADataset(
         tokenizer=tokenizer,
         split=split,
+        sample_dataset=sample_dataset,
+        sample_size=sample_size,
         is_encoder_decoder=is_encoder_decoder,
         max_length=max_length,
         fewshot=fewshot,
@@ -559,3 +571,6 @@ def get_dataloader(
         collate_fn=data_collator,
         pin_memory=True,
     )
+
+
+

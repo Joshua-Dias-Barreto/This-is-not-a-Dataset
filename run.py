@@ -293,6 +293,8 @@ def main(
         train_dataloader = get_dataloader(
             tokenizer=tokenizer,
             split="train",
+            sample_dataset=data_args.sample_dataset,
+            sample_size=data_args.sample_size,
             is_encoder_decoder=model.config.is_encoder_decoder,
             max_length=data_args.max_seq_length,
             fewshot=data_args.fewshot,
@@ -310,6 +312,8 @@ def main(
             dev_dataloader = get_dataloader(
                 tokenizer=tokenizer,
                 split="validation",
+                sample_dataset=data_args.sample_dataset,
+                sample_size=data_args.sample_size,
                 is_encoder_decoder=model.config.is_encoder_decoder,
                 max_length=data_args.max_seq_length,
                 fewshot=data_args.fewshot,
@@ -621,6 +625,8 @@ def main(
                 tokenizer=tokenizer,
                 fewshot=data_args.fewshot,
                 split="test" if not data_args.do_predict_full_dataset else "all",
+                sample_dataset=data_args.sample_dataset,
+                sample_size=data_args.sample_size,
                 is_encoder_decoder=model.config.is_encoder_decoder,
                 max_length=data_args.max_seq_length,
                 batch_size=batch_size,
@@ -681,6 +687,7 @@ if __name__ == "__main__":
     ModelArguments.__setattr__ = object.__setattr__
     Seq2SeqTrainingArguments.__setattr__ = object.__setattr__
     TrainingArguments.__setattr__ = object.__setattr__
+
 
     model_args.model_name_or_path = (
         args.model_name_or_path
