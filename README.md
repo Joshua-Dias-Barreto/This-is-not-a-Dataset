@@ -106,6 +106,10 @@ do_predict: true
 do_predict_full_dataset: false
 max_seq_length: 4096
 
+# Sampling parameters
+sample_dataset: false
+sample_size: 100
+
 # Output Dir
 output_dir: results/zero-shot/llama-2-7b-chat-hf
 ````
