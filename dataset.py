@@ -244,6 +244,18 @@ def reduce_dataset(dataset: HFDataset, number_of_rows: int) -> HFDataset:
     
     return sampled_dataset
 
+def reduce_dataset_by_pattern(dataset: HFDataset, pattern_id: int, number_of_rows: int) -> HFDataset:
+    df = pd.DataFrame(dataset)
+    pattern_df = df[df['pattern_id'] == pattern_id]
+    if len(pattern_df) < number_of_rows:
+        number_of_rows = len(pattern_df)
+
+    selected_pattern_df = pattern_df.head(number_of_rows)
+    sampled_dataset = HFDataset.from_dict(selected_pattern_df.to_dict(orient='list'))
+    
+    return sampled_dataset
+
+
 class ThisIsNotADataset(Dataset):
     def __init__(
         self,
@@ -270,6 +282,7 @@ class ThisIsNotADataset(Dataset):
         
         if sample_dataset:
             dataset = reduce_dataset(dataset, sample_size)
+            # dataset = reduce_dataset_by_pattern(dataset, 1, sample_size)
         
         if pattern is not None:
             assert pattern in [
