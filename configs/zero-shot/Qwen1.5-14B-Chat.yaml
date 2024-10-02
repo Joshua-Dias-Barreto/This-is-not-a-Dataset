@@ -23,7 +23,7 @@ max_seq_length: 4096
 
 # Sampling parameters
 sample_dataset: true
-sample_size: 8207
+sample_size: 10000
 
 # Output Dir
 output_dir: results/zero-shot/Qwen1.5-14B-Chat
