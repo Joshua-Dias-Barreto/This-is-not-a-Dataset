@@ -281,8 +281,8 @@ class ThisIsNotADataset(Dataset):
         
         
         if sample_dataset:
-            dataset = reduce_dataset(dataset, sample_size)
-            # dataset = reduce_dataset_by_pattern(dataset, 1, sample_size)
+            # dataset = reduce_dataset(dataset, sample_size)
+            dataset = reduce_dataset_by_pattern(dataset, 1, sample_size)
         
         if pattern is not None:
             assert pattern in [

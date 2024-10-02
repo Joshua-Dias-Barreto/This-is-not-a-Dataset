@@ -22,8 +22,8 @@ do_predict_full_dataset: false
 max_seq_length: 4096
 
 # Sampling parameters
-sample_dataset: false
-sample_size: 200
+sample_dataset: true
+sample_size: 8207
 
 # Output Dir
 output_dir: results/zero-shot/Qwen1.5-14B-Chat
