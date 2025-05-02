@@ -28,7 +28,7 @@ sample_size: 200
 calculate_nas: true
 
 # Output Dir
-output_dir: results/zero-shot/granite2b_nas_full_prompt1
+output_dir: results/zero-shot/granite2b_nas_full_persona2
 
 overwrite_output_dir: true
 
