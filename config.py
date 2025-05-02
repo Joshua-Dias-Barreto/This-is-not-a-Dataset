@@ -221,3 +221,8 @@ class DataTrainingArguments:
             "help": "Number of rows to sample from the dataset if sample_dataset is True. Defaults to 100."
         },
     )
+
+    calculate_nas: bool = field(
+        default=False,
+        metadata={"help": "Whether to calculate Negative Attention Score (NAS) during evaluation"}
+    )
