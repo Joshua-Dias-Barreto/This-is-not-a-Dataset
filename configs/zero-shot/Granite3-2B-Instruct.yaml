@@ -22,13 +22,13 @@ do_predict_full_dataset: false
 max_seq_length: 4096
 
 # Sampling parameters
-sample_dataset: true
+sample_dataset: false
 sample_size: 200
 
 calculate_nas: true
 
 # Output Dir
-output_dir: results/zero-shot/granite2b_nas_full_prompt2_samp
+output_dir: results/zero-shot/granite2b_nas_full_prompt2
 
 overwrite_output_dir: true
 
