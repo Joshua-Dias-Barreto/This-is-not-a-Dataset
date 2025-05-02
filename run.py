@@ -25,6 +25,7 @@ from dataset import get_dataloader
 from evaluate import evaluate
 from load_model import load_model, deepspeed_moe
 from optimizer import get_optimizer
+from nas import NegativeAttentionScorer, run_nas_evaluation
 
 
 def clean_cache():
@@ -92,6 +93,7 @@ def gen_predictions(
     print_first=False,
     predict_with_generate=False,
     return_scores=False,
+    calculate_nas=False,
 ):
     if predict_with_generate and return_scores:
         raise ValueError(
@@ -229,6 +231,18 @@ def gen_predictions(
                         else:
                             all_preds.append(False)
 
+        # Calculate NAS if requested
+        if calculate_nas and accelerator.is_local_main_process:
+            nas_output_path = os.path.splitext(output_path)[0] + "_nas.csv"
+            run_nas_evaluation(
+                model=model,
+                tokenizer=tokenizer,
+                dataloader=dataloader,
+                output_path=nas_output_path,
+                accelerator=accelerator,
+            )
+            print(f"NAS scores saved to {nas_output_path}")
+
         if accelerator.is_local_main_process:
             with open(output_path, "w", encoding="utf8") as f:
                 for pred in all_preds if not return_scores else all_scores:
@@ -262,6 +276,9 @@ def main(
         "as the model will be evaluated on the full dataset, which"
         " includes the training set."
     )
+
+    if not hasattr(data_args, 'calculate_nas'):
+        data_args.calculate_nas = False
 
     logging.basicConfig(level=logging.INFO)
 
@@ -644,6 +661,7 @@ def main(
                 accelerator=accelerator,
                 print_first=first,
                 predict_with_generate=training_args.predict_with_generate,
+                calculate_nas=data_args.calculate_nas,
             )
             first = False
 
