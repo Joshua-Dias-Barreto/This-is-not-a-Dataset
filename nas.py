@@ -53,14 +53,23 @@ class NegativeAttentionScorer:
         self.model.config.output_attentions = True
 
         with torch.no_grad():
+            decoder_input_ids = torch.full(
+                (input_ids.size(0), 1),
+                self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else self.model.config.decoder_start_token_id,
+                dtype=torch.long,
+                device=input_ids.device
+            )
+
             outputs = self.model(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
+                decoder_input_ids=decoder_input_ids,
                 output_attentions=True
             )
 
+
         self.model.config.output_attentions = original_config
-        attentions = outputs.attentions
+        attentions = outputs.cross_attentions
         batch_size = input_ids.shape[0]
         results = []
         for batch_idx in range(batch_size):
