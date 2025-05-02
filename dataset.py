@@ -73,9 +73,9 @@ def prepare_data(
             prepare_data._warning_logged = True
     if not fewshot:
         if tokenizer.chat_template is not None:
-            prompt = f"Is the following statement True or False? Answer only True or False. {example['sentence'].strip()}"
+            prompt = f"Pay attention to any negation and distractors (sentences which don't make sense). Is the following statement True or False? Answer only True or False. {example['sentence'].strip()}"
         else:
-            prompt = f"Is the following statement True or False? {example['sentence'].strip()}"
+            prompt = f"Pay attention to any negation and distractors (sentences which don't make sense). Is the following statement True or False? {example['sentence'].strip()}"
 
     else:
         if tokenizer.chat_template is not None:
@@ -272,6 +272,23 @@ def reduce_dataset_by_pattern_with_offset(dataset: HFDataset, pattern_id: int, n
     
     return sampled_dataset
 
+def reduce_dataset_by_min_pattern(dataset: HFDataset) -> HFDataset:
+    df = pd.DataFrame(dataset)
+    
+    # Find the minimum number of rows across all patterns
+    min_rows = df.groupby('pattern_id').size().min()
+    
+    # Sample `min_rows` rows from each pattern
+    sampled_dfs = []
+    for pattern_id, group_df in df.groupby('pattern_id'):
+        sampled_pattern_df = group_df.head(min_rows)
+        sampled_dfs.append(sampled_pattern_df)
+    
+    # Concatenate all the sampled rows and convert back to HFDataset
+    reduced_df = pd.concat(sampled_dfs).reset_index(drop=True)
+    reduced_dataset = HFDataset.from_dict(reduced_df.to_dict(orient='list'))
+    
+    return reduced_dataset
 
 
 class ThisIsNotADataset(Dataset):
@@ -301,7 +318,7 @@ class ThisIsNotADataset(Dataset):
         if sample_dataset:
             # dataset = reduce_dataset(dataset, sample_size)
             # dataset = reduce_dataset_by_pattern(dataset, 1, sample_size)
-            dataset = reduce_dataset_by_pattern_with_offset(dataset, 1, sample_size, 8207)
+            dataset = reduce_dataset_by_min_pattern(dataset)
         
         if pattern is not None:
             assert pattern in [
