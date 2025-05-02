@@ -73,7 +73,7 @@ def prepare_data(
             prepare_data._warning_logged = True
     if not fewshot:
         if tokenizer.chat_template is not None:
-            prompt = f"Pay attention to any negation and distractors (sentences which don't make sense). Is the following statement True or False? Answer only True or False. {example['sentence'].strip()}"
+            prompt = f"Pay attention to any negation (words like 'not', 'no', 'never'). Is the following statement True or False? Answer only True or False. {example['sentence'].strip()}"
         else:
             prompt = f"Pay attention to any negation and distractors (sentences which don't make sense). Is the following statement True or False? {example['sentence'].strip()}"
 
