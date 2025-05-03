@@ -36,33 +36,50 @@ class NegativeAttentionScorer:
         logging.info(f"no token ID: {self.no_token_id}")
 
     def calculate_nas(
-        self, 
-        input_ids: torch.Tensor, 
-        attention_mask: torch.Tensor,
-        pattern_ids: List[int],
-        negation_types: List[str],
-        test_ids: List[int],
-        labels: List[str],
-        sentences: List[str]
-    ) -> List[Dict[str, Union[float, List[List[float]]]]]:
-        """
-        Calculate Negative Attention Score for input examples.
-        """
-        self.model.eval()
-        original_config = self.model.config.output_attentions
-        self.model.config.output_attentions = True
+    self, 
+    input_ids: torch.Tensor, 
+    attention_mask: torch.Tensor,
+    pattern_ids: List[int],
+    negation_types: List[str],
+    test_ids: List[int],
+    labels: List[str],
+    sentences: List[str]
+) -> List[Dict[str, Union[float, List[List[float]]]]]:
+    
+        base_model = getattr(self.model, "module", self.model)  # unwrap DDP if needed
+        base_model.eval()
+
+        original_config = base_model.config.output_attentions
+        base_model.config.output_attentions = True
 
         with torch.no_grad():
-            outputs = self.model(
+            decoder_input_ids = None
+            if base_model.config.is_encoder_decoder:
+                decoder_input_ids = torch.full(
+                    (input_ids.size(0), 1),
+                    self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else base_model.config.decoder_start_token_id,
+                    dtype=torch.long,
+                    device=input_ids.device
+                )
+
+            outputs = base_model(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
-                output_attentions=True
+                decoder_input_ids=decoder_input_ids,
+                output_attentions=True,
+                return_dict=True,
             )
 
-        self.model.config.output_attentions = original_config
-        attentions = outputs.attentions
+        base_model.config.output_attentions = original_config
+
+        if base_model.config.is_encoder_decoder:
+            attentions = outputs.cross_attentions  # Input-focused attention
+        else:
+            attentions = outputs.attentions
+
         batch_size = input_ids.shape[0]
         results = []
+
         for batch_idx in range(batch_size):
             pattern_id = pattern_ids[batch_idx]
             neg_type = negation_types[batch_idx]
@@ -95,7 +112,6 @@ class NegativeAttentionScorer:
             sample_tokens = self.tokenizer.convert_ids_to_tokens(sample_input_ids.tolist())
 
             token_positions = (sample_input_ids == target_token_id).nonzero(as_tuple=True)[0]
-
             if len(token_positions) == 0:
                 token_positions = torch.tensor([
                     i for i, token in enumerate(sample_tokens)
