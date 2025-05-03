@@ -73,9 +73,9 @@ def prepare_data(
             prepare_data._warning_logged = True
     if not fewshot:
         if tokenizer.chat_template is not None:
-            prompt = f"You are a linguistic expert who understands the effect of negation words. Is the following statement True or False? Answer only True or False. {example['sentence'].strip()}"
+            prompt = f"Pay attention to any negation (words like 'not', 'no', 'never'). Is the following statement True or False? Answer only True or False. {example['sentence'].strip()}"
         else:
-            prompt = f"You are a linguistic expert who understands the effect of negation words. Is the following statement True or False? {example['sentence'].strip()}"
+            prompt = f"Pay attention to any negation (words like 'not', 'no', 'never'). Is the following statement True or False? {example['sentence'].strip()}"
 
     else:
         if tokenizer.chat_template is not None:
