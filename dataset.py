@@ -73,9 +73,9 @@ def prepare_data(
             prepare_data._warning_logged = True
     if not fewshot:
         if tokenizer.chat_template is not None:
-            prompt = f"Is the following statement True or False? Answer only True or False. {example['sentence'].strip()}"
+            prompt = f"You are an expert in analysing negations in sentences. Is the following statement True or False? Answer only True or False. {example['sentence'].strip()}"
         else:
-            prompt = f"Is the following statement True or False? {example['sentence'].strip()}"
+            prompt = f"You are an expert in analysing negations in sentences. Is the following statement True or False? {example['sentence'].strip()}"
 
     else:
         if tokenizer.chat_template is not None:
